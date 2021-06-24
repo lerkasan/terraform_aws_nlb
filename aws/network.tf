@@ -2,17 +2,11 @@ resource "aws_vpc" "demo_vpc" {
   cidr_block           = "10.0.0.0/16"
 }
 
-resource "aws_subnet" "demo_subnet1" {
+resource "aws_subnet" "demo_subnet" {
+  for_each = toset(local.availability_zones)
   vpc_id                  = aws_vpc.demo_vpc.id
-  availability_zone       = local.availability_zone1
-  cidr_block              = "10.0.0.0/24"
-  map_public_ip_on_launch = true
-}
-
-resource "aws_subnet" "demo_subnet2" {
-  vpc_id                  = aws_vpc.demo_vpc.id
-  availability_zone       = local.availability_zone2
-  cidr_block              = "10.0.1.0/24"
+  availability_zone       = each.key
+  cidr_block              = format("%s%s%s", "10.0.", index(local.availability_zones, each.key), ".0/24")
   map_public_ip_on_launch = true
 }
 
@@ -44,6 +38,7 @@ resource "aws_security_group" "demo_secgroup" {
     protocol    = "tcp"
     cidr_blocks = [ "0.0.0.0/0" ]
   }
+
   ingress {
     from_port   = var.webapp_port
     to_port     = var.webapp_port

@@ -1,11 +1,20 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "=3.46.0"
+    }
+  }
+}
+
 provider "aws" {
   region = var.aws_region
 }
 
 resource "aws_instance" "demo_vm" {
-  for_each = local.availability_zones
+  for_each = toset(local.availability_zones)
   availability_zone = each.key
-  subnet_id = each.value
+  subnet_id = aws_subnet.demo_subnet[each.key].id
   ami = data.aws_ami.ubuntu.id
   instance_type = var.ec2_instance_type
   user_data = file("./userdata.sh")
@@ -20,7 +29,7 @@ resource "aws_lb" "demo_lb" {
   name               = "demo-lb"
   internal           = false
   load_balancer_type = "network"
-  subnets            = [aws_subnet.demo_subnet1.id, aws_subnet.demo_subnet2.id]
+  subnets            = [aws_subnet.demo_subnet["${local.availability_zone1}"].id, aws_subnet.demo_subnet["${local.availability_zone2}"].id]
   tags = {
     name = "demo"
   }
@@ -33,7 +42,7 @@ resource "aws_lb_target_group" "demo_target_group" {
 }
 
 resource "aws_lb_target_group_attachment" "demo_target_group_attach" {
-  for_each = local.availability_zones
+  for_each = toset(local.availability_zones)
   target_group_arn = aws_lb_target_group.demo_target_group.arn
   target_id        = aws_instance.demo_vm[each.key].id
   port             = 80

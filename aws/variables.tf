@@ -6,10 +6,8 @@ variable "aws_region" {
 locals {
   availability_zone1 = format("%s%s", var.aws_region, "a")
   availability_zone2 = format("%s%s", var.aws_region, "b")
-  availability_zones = {
-    "${local.availability_zone1}" = aws_subnet.demo_subnet1.id
-    "${local.availability_zone2}" = aws_subnet.demo_subnet2.id
-  }
+
+  availability_zones = [ local.availability_zone1, local.availability_zone2 ]
 }
 
 # --------- EC2 parameters -----------
