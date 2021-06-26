@@ -29,6 +29,7 @@ resource "aws_lb" "demo_lb" {
   name               = "demo-lb"
   internal           = false
   load_balancer_type = "network"
+  enable_cross_zone_load_balancing = true
   subnets            = [aws_subnet.demo_subnet["${local.availability_zone1}"].id, aws_subnet.demo_subnet["${local.availability_zone2}"].id]
   tags = {
     name = "demo"
